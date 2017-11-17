@@ -9,22 +9,31 @@ export default async (pagination) => {
     const response = await axios.get('https://pokeapi.co/api/v2/pokemon/?' + param(pagination));
     const pokemonList = response.data.results
 
-    let newPokemons = []
+    let list = [], newPokemons = []
 
-    for (let pokemon of pokemonList)
+
+    for (let result of pokemonList)
+        list.push(getPokemon(result.url))
+
+
+    const pokemons = await Promise.all(list)
+
+
+    for (let pokemon of pokemons)
         newPokemons.push({
             ...pokemon,
-            image: Pokemon.getSprite(pokemon.name),
-            details: getPokemonDetails(pokemon.url)
-        });
+            image: Pokemon.getSprite(pokemon.name)
+        })
 
-    response.data.pokemons = newPokemons
 
-    return response.data
+
+    return newPokemons
+
+
 }
 
 
-export const getPokemonDetails = async (url) => {
+export const getPokemon = async (url) => {
     const response = await cachios.get(url, {ttl: 30})
     return response.data
 }
